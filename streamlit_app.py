@@ -1,45 +1,28 @@
-# ✅ Shadow Intel Agent - Streamlit App (v2 with GNews API)
-
-import streamlit as st
 import requests
+from bs4 import BeautifulSoup
 
-# -----------------------
-# 🔧 Config
-# -----------------------
-API_KEY = "724ee3f8ef1541ab470ba9280bf3ee82"
-API_URL = "https://gnews.io/api/v4/search"
+query = st.text_input("📰 Въведи тема, която те интересува:", "AI investing")
+search_url = f"https://www.google.com/search?q={query}+site:reuters.com+OR+site:finance.yahoo.com+OR+site:marketwatch.com&hl=en"
 
-# -----------------------
-# 🌑 UI
-# -----------------------
-st.set_page_config(page_title="Shadow News Agent", layout="wide")
-st.title("🕵️‍♀️ Shadow Intel Agent – GNews Edition")
-st.caption("Извличане и анализ на реални новини от сигурен източник.")
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+}
 
-query = st.selectbox(
-    "📰 Избери тема, която те интересува:",
-    ["AI investing", "AI market", "AI stocks", "Nvidia", "OpenAI"]
-)
+response = requests.get(search_url, headers=headers)
 
-if query:
-    params = {
-        "q": query,
-        "lang": "en",
-        "token": API_KEY,
-        "max": 10,
-    }
+soup = BeautifulSoup(response.text, "html.parser")
 
-    response = requests.get(API_URL, params=params)
-    data = response.json()
-
-    articles = data.get("articles", [])
-
-    if articles:
-        for i, article in enumerate(articles, 1):
-            st.markdown(f"**{i}. [{article['title']}]({article['url']})**")
-            st.caption(article['publishedAt'])
-            st.write(article['description'])
-            st.markdown("---")
+results = []
+for g in soup.find_all('div', class_='tF2Cxc'):
+    title = g.find('h3')
+    link = g.find('a')
+    snippet = g.find('div', class_='VwiC3b')
+    if title and link and snippet:
+        results.append({
+            "title": title.text,
+            "link": link['href'],
+            "snippet": snippet.text
+        })
     else:
         st.warning("Няма резултати. Пробвай друга ключова дума.")
 
