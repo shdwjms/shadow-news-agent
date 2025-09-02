@@ -22,24 +22,59 @@ query = st.selectbox(
     ["AI investing", "AI market", "AI stocks", "Nvidia", "OpenAI", "ChatGPT", "Tesla AI"]
 )
 
-# Бутон за търсене
-if st.button("🔍 Започни търсенето"):
+# Session state за проследяване на заявките
+if 'search_count' not in st.session_state:
+    st.session_state.search_count = 0
+if 'last_search_time' not in st.session_state:
+    st.session_state.last_search_time = 0
+
+# Проверка за rate limiting
+current_time = time.time()
+time_since_last = current_time - st.session_state.last_search_time
+min_wait_time = 30  # секundi между заявки
+
+# Бутон за търсене с rate limiting
+search_disabled = time_since_last < min_wait_time and st.session_state.search_count > 0
+
+if search_disabled:
+    remaining_time = int(min_wait_time - time_since_last)
+    st.warning(f"⏳ Изчакай {remaining_time} секунди преди следващото търсене...")
+    
+if st.button("🔍 Започни търсенето", disabled=search_disabled):
+    st.session_state.search_count += 1
+    st.session_state.last_search_time = current_time
+    
+    # Показване на статистика за заявките
+    if st.session_state.search_count > 2:
+        st.info(f"🔄 Това е твоята {st.session_state.search_count}-та заявка. При блокиране опитай след 5 минути.")
+    
     with st.spinner("Събирам разузнавателна информация... 🕵️"):
         try:
-            # По-добри headers за избягване на блокиране
+            # Ротиране на User-Agent
+            user_agents = [
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0"
+            ]
+            
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                "User-Agent": random.choice(user_agents),
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
                 "Accept-Language": "en-US,en;q=0.5",
                 "Accept-Encoding": "gzip, deflate",
-                "Connection": "keep-alive"
+                "Connection": "keep-alive",
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "none"
             }
             
             # Алтернативен подход - използване на DuckDuckGo вместо Google
             search_url = f"https://duckduckgo.com/html/?q={query}+site:reuters.com+OR+site:finance.yahoo.com+OR+site:marketwatch.com"
             
-            # Добавяне на случайно закъснение
-            time.sleep(random.uniform(1, 3))
+            # По-дълго закъснение за избягване на блокиране
+            delay = random.uniform(3, 8) if st.session_state.search_count > 2 else random.uniform(1, 3)
+            time.sleep(delay)
             
             response = requests.get(search_url, headers=headers, timeout=10)
             response.raise_for_status()
@@ -80,10 +115,27 @@ if st.button("🔍 Започни търсенето"):
                 
         except requests.exceptions.RequestException as e:
             st.error(f"❌ Грешка при заявката: {str(e)}")
-            st.info("💡 **Алтернатива:** Опитай директно в браузъра или използвай VPN.")
+            st.error("🚫 **Вероятна причина:** Сайтът блокира заявките ти")
             
+            with st.expander("🛠️ Решения за блокирането"):
+                st.markdown("""
+                **Опитай следните методи:**
+                1. ⏰ **Изчакай 5-10 минути** преди следващо търсене
+                2. 🔄 **Рестартирай приложението** (F5)
+                3. 🌐 **Използвай VPN** за смяна на IP адреса
+                4. 📱 **Опитай от различно устройство/мрежа**
+                5. 🔗 **Използвай директните линкове** по-долу
+                """)
+                
         except Exception as e:
             st.error(f"❌ Неочаквана грешка: {str(e)}")
+            
+# Бутон за reset на брояча
+if st.session_state.search_count > 0:
+    if st.button("🔄 Нулирай брояча на заявките"):
+        st.session_state.search_count = 0
+        st.session_state.last_search_time = 0
+        st.rerun()
 
 # Алтернативен раздел с директни линкове
 st.divider()
@@ -129,3 +181,10 @@ with st.sidebar:
     - За най-актуални данни използвай директните линкове
     - Ако има грешки, опитай след няколко минути
     """)
+    
+    # Статистика за заявките
+    if st.session_state.search_count > 0:
+        st.header("📊 Статистика")
+        st.metric("Направени заявки", st.session_state.search_count)
+        if st.session_state.search_count > 3:
+            st.warning("⚠️ Много заявки! Възможно блокиране.")
