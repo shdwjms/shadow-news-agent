@@ -1,3 +1,4 @@
+# ✅ Shadow Intel Agent - Streamlit App (v2 with GNews API)import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 
