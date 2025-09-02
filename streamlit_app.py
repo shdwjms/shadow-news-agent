@@ -19,11 +19,8 @@ st.subheader("📰 AI & Tech Intelligence Gathering")
 if 'search_count' not in st.session_state:
     st.session_state.search_count = 0
 
-# NewsAPI ключ (безплатен - 100 заявки/ден)
-# За production версия трябва да го сложиш в st.secrets
-NEWSAPI_KEY = st.text_input("🔑 NewsAPI ключ (безплатен от newsapi.org):", 
-                           type="password",
-                           help="Регистрирай се на https://newsapi.org за безплатен ключ")
+# NewsAPI ключ (вмъкнат директно)
+NEWSAPI_KEY = "cdd83a93db6344bc95c7d5eedd117c02"
 
 if not NEWSAPI_KEY:
     st.info("💡 **Как да получиш API ключ:**")
