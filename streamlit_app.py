@@ -1,4 +1,9 @@
-# ✅ Shadow Intel Agent - Streamlit App (Fixed Version)
+# Бутон за reset на брояча
+if st.session_state.search_count > 0:
+    if st.button("🔄 Нулирай брояча на заявките"):
+        st.session_state.search_count = 0
+        st.session_state.last_search_time = 0
+        st.rerun()# ✅ Shadow Intel Agent - Streamlit App (Fixed Version)
 
 import streamlit as st
 import requests
@@ -130,12 +135,76 @@ if st.button("🔍 Започни търсенето", disabled=search_disabled)
         except Exception as e:
             st.error(f"❌ Неочаквана грешка: {str(e)}")
             
-# Бутон за reset на брояча
-if st.session_state.search_count > 0:
-    if st.button("🔄 Нулирай брояча на заявките"):
-        st.session_state.search_count = 0
-        st.session_state.last_search_time = 0
-        st.rerun()
+# Тест секция за проверка на блокиране
+st.divider()
+st.subheader("🧪 Диагностика на блокиране")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("🌐 Тестов ping"):
+        try:
+            test_response = requests.get("https://httpbin.org/user-agent", timeout=5)
+            st.success("✅ Интернет връзката работи")
+            st.json(test_response.json())
+        except:
+            st.error("❌ Проблем с интернет връзката")
+
+with col2:
+    if st.button("🔍 Тест DuckDuckGo"):
+        try:
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            test_url = "https://duckduckgo.com/html/?q=test"
+            response = requests.get(test_url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                st.success(f"✅ DuckDuckGo отговаря (Status: {response.status_code})")
+                if "blocked" in response.text.lower() or "captcha" in response.text.lower():
+                    st.warning("⚠️ Възможно блокиране детектирано")
+                else:
+                    st.info("🟢 Изглежда не си блокиран")
+            else:
+                st.error(f"❌ Необичаен отговор: {response.status_code}")
+                
+        except Exception as e:
+            st.error(f"❌ Грешка при тестването: {str(e)}")
+
+# Съвети за по-бързо възстановяване
+with st.expander("⚡ Как да се възстановиш по-бързо?"):
+    st.markdown("""
+    ### 🚀 Бързи решения:
+    1. **🔄 Смени браузъра** - Chrome → Firefox → Edge
+    2. **📱 Опитай от телефона** (различна мрежа)
+    3. **🏠 Смени WiFi мрежата** (мобилни данни)
+    4. **🌐 VPN** - промяна на местоположението
+    5. **⏰ Изчакай 30+ минути** и опитай отново
+    
+    ### 🔧 Технически трикове:
+    - Изтрий cookies и cache
+    - Рестартирай рутера (нов IP от ISP)
+    - Използвай Incognito/Private режим
+    """)
+
+# Real-time статус
+st.markdown("### 📊 Текущ статус:")
+status_cols = st.columns(4)
+with status_cols[0]:
+    st.metric("Заявки направени", st.session_state.search_count)
+with status_cols[1]:
+    if st.session_state.search_count == 0:
+        st.metric("Риск ниво", "🟢 Ниско")
+    elif st.session_state.search_count < 3:
+        st.metric("Риск ниво", "🟡 Средно") 
+    else:
+        st.metric("Риск ниво", "🔴 Високо")
+with status_cols[2]:
+    minutes_passed = int((time.time() - st.session_state.last_search_time) / 60) if st.session_state.last_search_time > 0 else 0
+    st.metric("Минути от последна заявка", minutes_passed)
+with status_cols[3]:
+    if minutes_passed > 30:
+        st.metric("Препоръка", "✅ Опитай сега")
+    else:
+        st.metric("Препоръка", f"⏳ Изчакай още {30-minutes_passed}м")
 
 # Алтернативен раздел с директни линкове
 st.divider()
