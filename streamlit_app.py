@@ -2,7 +2,10 @@
 import requests
 from bs4 import BeautifulSoup
 
-query = st.text_input("📰 Въведи тема, която те интересува:", "AI investing")
+query = st.selectbox(
+    "📰 Избери тема, която те интересува:",
+    ["AI investing", "AI market", "AI stocks", "Nvidia", "OpenAI"]
+)
 search_url = f"https://www.google.com/search?q={query}+site:reuters.com+OR+site:finance.yahoo.com+OR+site:marketwatch.com&hl=en"
 
 headers = {
