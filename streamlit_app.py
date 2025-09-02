@@ -8,7 +8,7 @@ st.title("🕵️‍♀️ Shadow Intel Agent – Auto News Scraper")
 query = st.text_input("📰 Въведи тема, която те интересува:", "AI investing")
 
 if query:
-    url = f"https://www.google.com/search?q={query}+site:reuters.com&hl=en"
+    url = f"https://www.google.com/search?q={query}+site:reuters.com+OR+site:finance.yahoo.com+OR+site:fool.com+OR+site:seekingalpha.com+OR+site:marketwatch.com&hl=en"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
     }
