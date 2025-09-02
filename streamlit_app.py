@@ -21,8 +21,6 @@ if 'search_count' not in st.session_state:
 
 # NewsAPI ключ (вмъкнат директно)
 NEWSAPI_KEY = "cdd83a93db6344bc95c7d5eedd117c02"
-    
-    st.warning("⚠️ Без API ключ ще използваме алтернативен метод (по-ограничен)")
 
 # Избор на тема
 query_options = {
