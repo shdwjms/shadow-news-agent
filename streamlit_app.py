@@ -16,7 +16,10 @@ st.set_page_config(page_title="Shadow News Agent", layout="wide")
 st.title("🕵️‍♀️ Shadow Intel Agent – GNews Edition")
 st.caption("Извличане и анализ на реални новини от сигурен източник.")
 
-query = st.text_input("📰 Въведи тема, която те интересува:", "AI investing", "AI market", "ÄI stocks", "Nvidia", "OpenAI")
+query = st.selectbox(
+    "📰 Избери тема, която те интересува:",
+    ["AI investing", "AI market", "AI stocks", "Nvidia", "OpenAI"]
+)
 
 if query:
     params = {
